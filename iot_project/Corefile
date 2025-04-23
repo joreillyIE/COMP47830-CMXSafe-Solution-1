@@ -1,0 +1,10 @@
+. {
+    hosts /etc/hosts.override mydns.local {
+        ttl 30
+        reload 15s
+        fallthrough
+    }
+    forward . 8.8.8.8
+    log
+    errors
+}
