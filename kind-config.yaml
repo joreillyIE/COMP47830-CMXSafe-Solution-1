@@ -1,5 +1,22 @@
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
+
+# Patch kubeadm’s generated proxy config
+kubeadmConfigPatches:
+- |
+  kind: KubeProxyConfiguration
+  apiVersion: kubeproxy.config.k8s.io/v1alpha1
+
+  # Keep the real client IP and only sync every 15s
+  mode: iptables
+  configSyncPeriod: 15s
+
+  iptables:
+    syncPeriod: 15s
+
+  ipvs:
+    syncPeriod: 15s
+
 networking:
   ipFamily: dual
   podSubnet: "10.244.0.0/16,fd00:10:244::/56"
