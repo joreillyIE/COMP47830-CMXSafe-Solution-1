@@ -14,6 +14,7 @@
 ## Prerequisites
 - Docker Desktop
 - Kind
+- - Follow these steps to ensure session affinity: https://kind.sigs.k8s.io/docs/user/using-wsl2/#kubernetes-service-with-session-affinity
 - Kubectl
 
 ## How to run
