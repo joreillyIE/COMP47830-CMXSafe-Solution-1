@@ -597,5 +597,5 @@ Cleanup completed successfully!
 
 ## Acknowledgements
 
-This work was completed by Joanne Reilly and Dr. Jorge David de Hoz Diego under the supervision of Dr. Anca Delia Jurcut in the School of Computer Science at University College Dublin, Belfield, Dublin 4, Ireland.
+This work was completed by Joanne Reilly and Dr. Jorge David de Hoz Diego under the supervision of Dr. Anca Delia Jurcut at the School of Computer Science, University College Dublin, Belfield, Dublin 4, Ireland.
 
