@@ -39,32 +39,32 @@ CMXsafe is a secure-by-design, application-agnostic proxy layer for securing IoT
 
 ### Solution Components and Implementation
 - **CMX Orchestrator:**
- - Emulated via Kubernetes control plane which creates and destroys cluster objects dynamically.
- - Each CMX-GW pod uses a ServiceAccount with custom Roles to dynamically create Services.
- - ConfigMaps and entrypoint scripts handle configuration of keys, users, and policy logic.
- - Uses ExternalDNS to automate DNS updates when services are created dynamically.
- - MetalLB acts as a load balancer, allocating external IPs to services.
+  - Emulated via Kubernetes control plane which creates and destroys cluster objects dynamically.
+  - Each CMX-GW pod uses a ServiceAccount with custom Roles to dynamically create Services.
+  - ConfigMaps and entrypoint scripts handle configuration of keys, users, and policy logic.
+  - Uses ExternalDNS to automate DNS updates when services are created dynamically.
+  - MetalLB acts as a load balancer, allocating external IPs to services.
 - **CMX Gateways (CMX-GWs):**
- - Implemented as containerized pods in Kubernetes using a ReplicaSet.
- - Each pod runs a customized OpenSSH server configured for socket proxying (supporting direct and reverse port forwarding).
- - Stateless design aligns with Kubernetes' container lifecycle and allows horizontal scaling.
- - Automatically authenticated sessions via public key-based SSH connections.
+  - Implemented as containerized pods in Kubernetes using a ReplicaSet.
+  - Each pod runs a customized OpenSSH server configured for socket proxying (supporting direct and reverse port forwarding).
+  - Stateless design aligns with Kubernetes' container lifecycle and allows horizontal scaling.
+  - Automatically authenticated sessions via public key-based SSH connections.
 - **Agents:**
- - IoT devices and servers run OpenSSH clients embedded in Docker containers.
- - Agents initiate Secure Proxy Sessions (SPS) to CMX-GWs using SSH port forwarding.
- - Each agent identifies itself via pre-provisioned keys and MAC-based identity, mapped to custom Linux user accounts.
+  - IoT devices and servers run OpenSSH clients embedded in Docker containers.
+  - Agents initiate Secure Proxy Sessions (SPS) to CMX-GWs using SSH port forwarding.
+  - Each agent identifies itself via pre-provisioned keys and MAC-based identity, mapped to custom Linux user accounts.
 - **Secure Proxy Sessions (SPS):**
- - Established via SSH tunnels using direct and reverse forwarding.
- - Maintained persistently using session affinity (Kubernetes sticky sessions).
- - Configured to route IoT traffic (e.g., MQTT) through local ports tunneled to remote sockets in CMX-GWs.
+  - Established via SSH tunnels using direct and reverse forwarding.
+  - Maintained persistently using session affinity (Kubernetes sticky sessions).\
+  - Configured to route IoT traffic (e.g., MQTT) through local ports tunneled to remote sockets in CMX-GWs.
 - **Identity (ID) and Mirror (Mir) Sockets:**
- - Implemented using SSH tunnel source binding.
- - Enabled via forced SSH command execution and per-user configuration blocks in sshd_config.
+  - Implemented using SSH tunnel source binding.
+  - Enabled via forced SSH command execution and per-user configuration blocks in sshd_config.
 - **Security Contexts (SCs):**
- - Achieved using Linux privilege separation within each CMX-GW container.
- - Each IoT device/server has a dedicated user account.
- - SCs are enforced through per-user SSH configurations and isolated session privileges.
- - Session traffic is tied to a user identity, enabling fine-grained control over proxied services.
+  - Achieved using Linux privilege separation within each CMX-GW container.
+  - Each IoT device/server has a dedicated user account.
+  - SCs are enforced through per-user SSH configurations and isolated session privileges.
+  - Session traffic is tied to a user identity, enabling fine-grained control over proxied services.
 
 ### Solution Workflow
 - CMXsafe System creates a set of CMX-Gateways:
