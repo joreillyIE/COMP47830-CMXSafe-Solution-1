@@ -68,9 +68,9 @@ CMXsafe is a secure-by-design, application-agnostic proxy layer for securing IoT
 
 ### Solution Workflow
 - CMXsafe System creates a set of CMX-Gateways:
- - Kubernetes cluster spins up CMX-GW pods via a ReplicaSet.
- - Each pod runs a preconfigured OpenSSH server capable of port forwarding.
- - ConfigMaps and volumes populate each pod with keys, user credentials, and startup scripts.
+  - Kubernetes cluster spins up CMX-GW pods via a ReplicaSet.
+  - Each pod runs a preconfigured OpenSSH server capable of port forwarding.
+  - ConfigMaps and volumes populate each pod with keys, user credentials, and startup scripts.
 - A device and server is installed with a CMX agent and receives authentication keys:
   - IoT devices and servers are created as Docker containers external to the cluster.
   - Volumes populate each contaner with keys, binaries, and startup scripts
