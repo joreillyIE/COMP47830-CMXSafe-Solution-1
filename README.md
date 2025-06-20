@@ -21,12 +21,12 @@ Our research explored how to best implement the CMXsafe system using microservic
 CMXsafe is a secure-by-design, application-agnostic proxy layer for securing IoT communications. It acts at the OSI transport layer (Layer 4) and intermediates traffic between IoT devices and platforms without requiring modifications to firmware or application code. Our solution implements CMXsafe using Kubernetes- the de facto standard for container orchestration. Kubernetes provides automated scheduling, self-healing, and horizontal autoscaling, ideally suited to the proxy layer’s stateless, containerized design.
 
 ### CMXsafe Components
-- CMX Orchestrator: The management and policy coordination component of CMXSafe.
-- CMX Gateways (CMX-GWs): Stateless, containerizable socket proxy servers that act as intermediaries for all device-server communications.
-- Agents: Lightweight client-side proxies on IoT devices and servers that initiate Secure Proxy Sessions (SPSs) using transport layer protocols.
-- Secure Proxy Sessions (SPS): Encrypted, authenticated sessions that connect agents and gateways.
-- Identity (ID) and Mirror (Mir) Sockets: Ensure the preservation of device identity within proxied traffic using virtual IPv6 mappings.
-- Security Contexts (SCs): Enforce inter-process communication policies at the OS level by mapping user/socket combinations to connection identifiers (ConnIDs).
+- **CMX Orchestrator:** The management and policy coordination component of CMXSafe.
+- **CMX Gateways (CMX-GWs):** Stateless, containerizable socket proxy servers that act as intermediaries for all device-server communications.
+- **Agents:** Lightweight client-side proxies on IoT devices and servers that initiate Secure Proxy Sessions (SPSs) using transport layer protocols.
+- **Secure Proxy Sessions (SPS):** Encrypted, authenticated sessions that connect agents and gateways.
+- **Identity (ID) and Mirror (Mir) Sockets:** Ensure the preservation of device identity within proxied traffic using virtual IPv6 mappings.
+- **Security Contexts (SCs):** Enforce inter-process communication policies at the OS level by mapping user/socket combinations to connection identifiers (ConnIDs).
 
 ### CMXsafe Workflow
 - CMXsafe System creates a set of CMX-Gateways.
@@ -38,29 +38,29 @@ CMXsafe is a secure-by-design, application-agnostic proxy layer for securing IoT
 - If approved traffic is allowed, the CMX-Gateway forwards traffic between the two parties through the proxy layer.
 
 ### Solution Components and Implementation
-- CMX Orchestrator:
+- **CMX Orchestrator:**
  - Emulated via Kubernetes control plane which creates and destroys cluster objects dynamically.
  - Each CMX-GW pod uses a ServiceAccount with custom Roles to dynamically create Services.
  - ConfigMaps and entrypoint scripts handle configuration of keys, users, and policy logic.
  - Uses ExternalDNS to automate DNS updates when services are created dynamically.
  - MetalLB acts as a load balancer, allocating external IPs to services.
-- CMX Gateways (CMX-GWs):
+- **CMX Gateways (CMX-GWs):**
  - Implemented as containerized pods in Kubernetes using a ReplicaSet.
  - Each pod runs a customized OpenSSH server configured for socket proxying (supporting direct and reverse port forwarding).
  - Stateless design aligns with Kubernetes' container lifecycle and allows horizontal scaling.
  - Automatically authenticated sessions via public key-based SSH connections.
-- Agents:
+- **Agents:**
  - IoT devices and servers run OpenSSH clients embedded in Docker containers.
  - Agents initiate Secure Proxy Sessions (SPS) to CMX-GWs using SSH port forwarding.
  - Each agent identifies itself via pre-provisioned keys and MAC-based identity, mapped to custom Linux user accounts.
-- Secure Proxy Sessions (SPS):
+- **Secure Proxy Sessions (SPS):**
  - Established via SSH tunnels using direct and reverse forwarding.
  - Maintained persistently using session affinity (Kubernetes sticky sessions).
  - Configured to route IoT traffic (e.g., MQTT) through local ports tunneled to remote sockets in CMX-GWs.
-- Identity (ID) and Mirror (Mir) Sockets:
+- **Identity (ID) and Mirror (Mir) Sockets:**
  - Implemented using SSH tunnel source binding.
  - Enabled via forced SSH command execution and per-user configuration blocks in sshd_config.
-- Security Contexts (SCs):
+- **Security Contexts (SCs):**
  - Achieved using Linux privilege separation within each CMX-GW container.
  - Each IoT device/server has a dedicated user account.
  - SCs are enforced through per-user SSH configurations and isolated session privileges.
@@ -101,7 +101,7 @@ Our implementation was powered by an Intel Core i7-8700K CPU at 3.7GHz, running 
 
 ### Dependencies
 
-- Docker Desktop:
+- **Docker Desktop:**
   - Docker Desktop version 4.38.0 for a Windows 64-bit operating system was used at the time of our testbed setup.
   - We selected the ‘Use WSL 2 instead of Hyper-V’ option on the Configurattion page.
   - Steps:
@@ -111,7 +111,7 @@ Our implementation was powered by an Intel Core i7-8700K CPU at 3.7GHz, running 
     - Upon starting Docker Desktop, you may be prompted to install Windows Subsystem for Linux (WSL) 2.  If so, press any key to continue.
     - When the installation is successful, press any key to exit.
     - Accept the Docker Subscription Service Agreement and proceed to Docker Desktop.
-- Kubectl:
+- **Kubectl:**
   - Kubectl client version 1.31.4 and server version 1.32.2 was used at the time of our testbed setup.
   - Steps:
     - Download the kubectl release binary by visiting the Kubernetes release page or executing the following command:
@@ -122,7 +122,7 @@ Our implementation was powered by an Intel Core i7-8700K CPU at 3.7GHz, running 
       ```bash
       kubectl version
       ```
-- KinD (Kubernetes-in-Docker):
+- **KinD (Kubernetes-in-Docker):**
   - Kind version 0.27.0 for a Windows 64-bit operating system was used at the time of our testbed setup.
   - Steps:
     - Download the release binary, rename it to kind.exe, and place this into your preferred binary installation directory. This can be accomplished on Windows in Powershell using the following commands:
@@ -137,7 +137,7 @@ Our implementation was powered by an Intel Core i7-8700K CPU at 3.7GHz, running 
 
 ### Setup
 
-- Custom Kernel Configuration
+- **Custom Kernel Configuration:**
   - If Docker Desktop uses WSL 2 for its backend, a custom kernel must be created to ensure Kubernetes services with session affinity enabled is accessible.
   - This is because WSL 2 kernels are missing the xt_recent kernel module, which is used by Kube Proxy to implement session affinity.
   - A custom kernel with the xt_recent kernel module enabled can be built using the following commands:
@@ -152,11 +152,11 @@ Our implementation was powered by an Intel Core i7-8700K CPU at 3.7GHz, running 
     wsl --shutdown.
     ```
   - After waiting for two minutes, restart Docker Desktop and all changes should take effect.
-- Repository Configuration
+- **Repository Configuration:**
   - Download this GitHub repository.
   - Create an environment variable named CMXSafeProject and set it to the location of the downloaded repository.
   - Inside of the repository is a Windows Powershell script, setup.ps1. Copy this file to the location from which you prefer to execute it from (e.g. C:\Users\<your-user-name>).
-- Deployment
+- **Deployment:**
   - Restart Docker Desktop and, within the application, open a terminal.
   - Execute the following command:
     ```bash
@@ -165,7 +165,7 @@ Our implementation was powered by an Intel Core i7-8700K CPU at 3.7GHz, running 
  > [!WARNING]
  > TODO: Script should be digitally signed so that restricted execution policy allows execution of .\setup.ps1
 
-- Suspension
+- **Suspension:**
   - To stop the deployment completely, use keys Ctrl and C.
   - Then, execute the following command to remove all objects created during the deployment:
     ```bash
