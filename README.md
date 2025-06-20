@@ -135,13 +135,43 @@ Our implementation was powered by an Intel Core i7-8700K CPU at 3.7GHz, running 
       kind version
       ```
 
-### Startup
+### Setup
 
+- Custom Kernel Configuration
+  - If Docker Desktop uses WSL 2 for its backend, a custom kernel must be created to ensure Kubernetes services with session affinity enabled is accessible.
+  - This is because WSL 2 kernels are missing the xt_recent kernel module, which is used by Kube Proxy to implement session affinity.
+  - A custom kernel with the xt_recent kernel module enabled can be built using the following commands:
+    https://kind.sigs.k8s.io/docs/user/using-wsl2/#kubernetes-service-with-session-affinity
+  - Once the kernel is successfully built, create a .wslconfig file in C:\Users\<your-user-name>. This file should contain the following:
+    ```bash
+    [wsl2]
+    kernel=c:\\path\\to\\your\\kernel\\bzImage
+    ```
+  - Quit Docker Desktop, open an admin PowerShell prompt and run:
+    ```bash
+    wsl --shutdown.
+    ```
+  - After waiting for two minutes, restart Docker Desktop and all changes should take effect.
+- Repository Configuration
+  - Download this GitHub repository.
+  - Create an environment variable named CMXSafeProject and set it to the location of the downloaded repository.
+  - Inside of the repository is a Windows Powershell script, setup.ps1. Copy this file to the location from which you prefer to execute it from (e.g. C:\Users\<your-user-name>).
+- Deployment
+  - Restart Docker Desktop and, within the application, open a terminal.
+  - Execute the following command:
+    ```bash
+    Powershell -ExectionPolicy Bypass -File .\<location-of-script>\setup.ps1
+    ```
+ > [!WARNING]
+ > TODO: Script should be digitally signed so that restricted execution policy allows execution of .\setup.ps1
 
-
-### Shutdown
-
-Text
+- Suspension
+  - To stop the deployment completely, use keys Ctrl and C.
+  - Then, execute the following command to remove all objects created during the deployment:
+    ```bash
+    Powershell -ExectionPolicy Bypass -File .\<location-of-script>\setup.ps1 -Cleanup
+    ```
+    This allows a clean slate for redeployment.
 
 ## Results
 
@@ -163,31 +193,5 @@ Text
 
 ## Acknowledgements
 
-This work was completed by Joanne Reilly and Dr. Jorge David de Hoz Diego under the supervision of Dr. Anca Delia Jurcut at University College Dublin.
-
-
-
-
-## Description
-- Setup script deploys a kind cluster one worker node and three containers which act as a domain name server, IoT server, and IoT device.
-- On start up, the IoT server ssh client tries to connect to cmxsafe-gw.myservices.local
-- When the k8s load balancer service named cmxsafe-gw is launched, an external IPv4 address is provided by MetalLB.
-- External DNS requests domain name cmxsafe-gw.myservices.local for external IPv4 address.
-- IoT server is then able to resolve cmxsafe-gw.myservices.local and opens ssh connection with a replica pod.
-- Load balancer service is configured to allow session affinity so connection stays uninterupted for up to 24 hours.
-- When IoT server connects to a pod, a script is automatically executed to create another service named dynamic-service-<IOT_SERVER_MAC_ADDR>.
-- This service points onto to this particular pod, receives an external IPv4 address and is provisioned domain name dynamic-service-<IOT_SERVER_MAC_ADDR>.myservices.local by External DNS.
-- IoT device is then able to resolve dynamic-service-<IOT_SERVER_MAC_ADDR>.myservices.local and opens ssh connection with the same replica pod.
-
-## Prerequisites
-- Docker Desktop
-- Kind
-- - Follow these steps to ensure session affinity: https://kind.sigs.k8s.io/docs/user/using-wsl2/#kubernetes-service-with-session-affinity
-- Kubectl
-
-## How to run
-- Download files.
-- Set environment variable CMXSafeProject to location of downloaded files.
-- In terminal, go to location of files and run
-  .\setup.ps1
+This work was completed by Joanne Reilly and Dr. Jorge David de Hoz Diego under the supervision of Dr. Anca Delia Jurcut in the School of Computer Science at University College Dublin, Belfield, Dublin 4, Ireland.
 
