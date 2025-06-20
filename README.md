@@ -177,7 +177,7 @@ Our implementation was powered by an Intel Core i7-8700K CPU at 3.7GHz, running 
 
 After executing the Powershell command, you should see the following lines output to terminal.
 
-### Deployment of Testbed
+### Deployment of Network and Cluster
 
 ```bash
 Creating Network iot_network...
@@ -223,6 +223,7 @@ ingressclass.networking.k8s.io/nginx created
 validatingwebhookconfiguration.admissionregistration.k8s.io/ingress-nginx-admission created
 ```
 
+### Deployment of MetalLB
 ```bash
 namespace/metallb-system created
 customresourcedefinition.apiextensions.k8s.io/bfdprofiles.metallb.io created
@@ -253,28 +254,42 @@ ipaddresspool.metallb.io/cmxsafe-gateway-pool created
 l2advertisement.metallb.io/cmxsafe-gateway-adv created
 ```
 
+### Creation of Config Maps
+
 ```bash
 Creating configmap for SSH keys...
 configmap/ssh-keys created
 configmap/scripts created
 ```
 
+### Deployment of Cluster Roles and Service Accounts
+
 ```bash
 Applying Kubernetes configuration for gateway...
 serviceaccount/service-creator created
 role.rbac.authorization.k8s.io/service-creator-role created
 rolebinding.rbac.authorization.k8s.io/service-creator-binding created
+
+```
+
+### Deployment of ExternalDNS
+
+```bash
 serviceaccount/external-dns created
 clusterrole.rbac.authorization.k8s.io/external-dns created
 clusterrolebinding.rbac.authorization.k8s.io/external-dns created
 deployment.apps/external-dns created
-deployment.apps/cmxsafe-gw created
 ```
 
+### Deployment of CMXsafe Gateway ReplicaSet and Load Balancing Service
+
 ```bash
+deployment.apps/cmxsafe-gw created
 Applying Kubernetes service for gateway...
 service/cmxsafe-gw created
 ```
+
+### Deployment of IoT Server, IoT Device and BIND9 DNS
 
 ```bash
 Building and starting Docker containers...
@@ -332,6 +347,8 @@ Building and starting Docker containers...
  ✔ Container iot_device          Created                                                                                                                                 0.1s 
 Attaching to iot_device, bind-1, iot_server
 ```
+
+### BIND9 DNS Runtime
 
 ```bash
 bind-1      | Starting named...
@@ -505,13 +522,6 @@ bind-1      | 20-Jun-2025 16:32:08.491 client @0x7f2088006d48 192.168.1.3#40086:
 bind-1      | 20-Jun-2025 16:32:08.491 client @0x7f2088006d48 192.168.1.3#40086: updating zone 'myservices.local/IN': adding an RR at 'a-cmxsafe-gw.myservices.local' TXT "heritage=external-dns,external-dns/owner=default,external-dns/resource=service/default/cmxsafe-gw"
 bind-1      | 20-Jun-2025 16:32:08.491 client @0x7f2088006d48 192.168.1.3#40086: updating zone 'myservices.local/IN': adding an RR at 'cmxsafe-gw.myservices.local' A 192.168.1.240
 
-
-
-
-
-
-
-
 bind-1      | 20-Jun-2025 16:31:43.421 running
 bind-1      | 20-Jun-2025 16:31:43.481 managed-keys-zone: Initializing automatic trust anchor management for zone '.'; DNSKEY ID 20326 is now trusted, waiving the normal 30-day waiting period.
 bind-1      | 20-Jun-2025 16:31:43.481 managed-keys-zone: Initializing automatic trust anchor management for zone '.'; DNSKEY ID 38696 is now trusted, waiving the normal 30-day waiting period.
@@ -519,6 +529,8 @@ bind-1      | 20-Jun-2025 16:32:08.491 client @0x7f2088006d48 192.168.1.3#40086:
 bind-1      | 20-Jun-2025 16:32:08.491 client @0x7f2088006d48 192.168.1.3#40086: updating zone 'myservices.local/IN': adding an RR at 'cmxsafe-gw.myservices.local' TXT "heritage=external-dns,external-dns/owner=default,external-dns/resource=service/default/cmxsafe-gw"
 bind-1      | 20-Jun-2025 16:32:08.491 client @0x7f2088006d48 192.168.1.3#40086: updating zone 'myservices.local/IN': adding an RR at 'a-cmxsafe-gw.myservices.local' TXT "heritage=external-dns,external-dns/owner=default,external-dns/resource=service/default/cmxsafe-gw"
 ```
+
+### IoT Server and IoT Device Runtime
 
 ```bash
 iot_server  | CMX Agent a23ff868ec8f Running...
@@ -546,8 +558,9 @@ iot_device  | Starting MQTT publisher...
 iot_server  | Hello from IoT Device
 iot_server  | Hello from IoT Device                                                                                                                                           
 iot_server  | Hello from IoT Device
-
 ```
+
+### Suspension
 
 ```bash
 Gracefully stopping... (press Ctrl+C again to force)
@@ -557,6 +570,8 @@ Gracefully stopping... (press Ctrl+C again to force)
  ✔ Container iot_server          Stopped                                                                                                                                11.1s 
 canceled
 ```
+
+### Clean Up
 
 ```bash
 Stopping Docker containers...
@@ -579,18 +594,6 @@ Successfully deleted: C:\Users\joann\CMXSafeProject\iot_project\keys\iot-server\
 File not found: C:\Users\joann\CMXSafeProject\iot_project\keys\iot-server\known_hosts.old
 Cleanup completed successfully!
 ```
-
-### CMXsafe System
-
-Text
-
-### VMs Connect to CMX Gateway
-
-Text
-
-### VMs Communicate via CMX Gateway
-
-Text
 
 ## Acknowledgements
 
