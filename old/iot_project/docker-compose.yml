@@ -1,0 +1,54 @@
+version: '3.9'
+
+services:
+  iot_server:
+    build: ./iot_server
+    container_name: iot_server
+    cap_add:
+      - NET_ADMIN  # Allows modifying networking settings
+      - SYS_ADMIN  # Allows system modifications
+    ports:
+      - "2222:22"  # Expose SSH on port 2222
+      - "1883:1883" # MQTT broker
+    networks:
+      iot_network:
+        mac_address: "a2:3f:f8:68:ec:8f"
+    volumes:
+      - ./keys/iot-server:/root/.ssh # Mount SSH keys
+    dns:
+      - 192.168.1.29
+    restart: always
+
+  iot_device:
+    build: ./iot_device
+    container_name: iot_device
+    cap_add:
+      - NET_ADMIN  # Allows modifying networking settings
+      - SYS_ADMIN  # Allows system modifications
+    depends_on:
+      - iot_server
+    networks:
+      iot_network:
+        mac_address: "02:5f:9a:3d:b7:12"
+    volumes:
+      - ./keys/iot-device:/root/.ssh # Mount SSH keys
+    dns:
+      - 192.168.1.29
+    restart: always
+
+  bind:
+    image: ubuntu/bind9:9.18-22.04_beta
+    environment:
+      - BIND9_USER=root
+    volumes:
+      - ./config:/etc/bind
+    networks:
+      iot_network:
+        ipv4_address: 192.168.1.29
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+
+networks:
+  iot_network:
+    external: true
