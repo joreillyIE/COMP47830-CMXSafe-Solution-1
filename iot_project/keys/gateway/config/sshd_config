@@ -1,0 +1,50 @@
+Include /etc/ssh/sshd_config.d/*.conf
+
+X11Forwarding no
+
+PrintMotd no
+
+
+
+Subsystem       sftp    /usr/lib/openssh/sftp-server
+
+# Disable other public key types
+PubkeyAcceptedKeyTypes ssh-ed25519,rsa-sha2-512,rsa-sha2-256
+HostKeyAlgorithms ssh-ed25519,rsa-sha2-512,rsa-sha2-256
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com
+KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group18-sha512,diffie-hellman-group16-sha512
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
+
+Compression no
+PermitTTY no
+AllowTcpForwarding no
+AllowAgentForwarding no
+PermitTunnel yes
+GatewayPorts yes
+PasswordAuthentication no
+PermitEmptyPasswords no
+PubkeyAuthentication yes
+PermitUserEnvironment no
+AuthenticationMethods publickey
+ChallengeResponseAuthentication no
+UsePAM no
+SyslogFacility AUTH
+LogLevel DEBUG3
+HostKey /etc/ssh/cmxsafe-gw-keys/ssh_host_ed25519_key
+PermitRootLogin no
+AllowUsers a23ff868ec8f 025f9a3db712 0242ac110002
+DenyUsers root
+ForceCommand echo "Access granted but no command allowed"
+
+Match User a23ff868ec8f
+    AllowTcpForwarding remote
+    PermitListen 127.0.0.1:1883 localhost:1883
+    ForceCommand /etc/cmxsafe_scripts/createservice.sh; sleep infinity
+
+Match User 025f9a3db712
+    AllowTcpForwarding local
+    PermitOpen 127.0.0.1:1883 localhost:1883
+
+Match User 0242ac110002
+    AllowTcpForwarding local
+    PermitOpen a23ff868ec8f.default.svc.cluster.local:1883

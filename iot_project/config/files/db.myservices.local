@@ -1,0 +1,29 @@
+$ORIGIN .
+$TTL 604800	; 1 week
+myservices.local	IN SOA	ns.myservices.local. hostmaster.myservices.local. (
+				2025041707 ; serial
+				604800     ; refresh (1 week)
+				86400      ; retry (1 day)
+				2419200    ; expire (4 weeks)
+				604800     ; minimum (1 week)
+				)
+			NS	ns.myservices.local.
+$ORIGIN myservices.local.
+$TTL 0	; 0 seconds
+a-cmxsafe-gw		TXT	"heritage=external-dns,external-dns/owner=default,external-dns/resource=service/default/cmxsafe-gw"
+a-dynamic-service-a23ff868ec8f TXT "heritage=external-dns,external-dns/owner=default,external-dns/resource=service/default/dynamic-service-a23ff868ec8f"
+a-dynamic-service-d-a23ff868ec8f TXT "heritage=external-dns,external-dns/owner=default,external-dns/resource=service/default/dynamic-service-d-a23ff868ec8f"
+a-test			TXT	"heritage=external-dns,external-dns/owner=default,external-dns/resource=service/default/dynamic-service-a23ff868ec8f"
+cmxsafe-gw		A	192.168.1.240
+			A	192.168.1.241
+			TXT	"heritage=external-dns,external-dns/owner=default,external-dns/resource=service/default/cmxsafe-gw"
+dynamic-service-a23ff868ec8f A	192.168.1.241
+			A	192.168.1.242
+			TXT	"heritage=external-dns,external-dns/owner=default,external-dns/resource=service/default/dynamic-service-a23ff868ec8f"
+dynamic-service-d-a23ff868ec8f A 192.168.1.243
+			TXT	"heritage=external-dns,external-dns/owner=default,external-dns/resource=service/default/dynamic-service-d-a23ff868ec8f"
+$TTL 604800	; 1 week
+ns			A	192.168.1.29
+$TTL 0	; 0 seconds
+test			A	192.168.1.241
+			TXT	"heritage=external-dns,external-dns/owner=default,external-dns/resource=service/default/dynamic-service-a23ff868ec8f"
