@@ -1,0 +1,145 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cmxsafe-gw
+spec:
+  replicas: 3  # Three pod replicas simulating CMX-GWs
+  selector:
+    matchLabels:
+      app: cmxsafe-gw
+  template:
+    metadata:
+      labels:
+        app: cmxsafe-gw
+    spec:
+      volumes:
+        - name: ssh-host-keys
+          secret:
+            secretName: cmxsafe-host-keys
+            defaultMode: 384
+        - name: sshd-config
+          secret:
+            secretName: cmxsafe-sshd-config
+        - name: authorized-keys
+          secret:
+            secretName: iot-users
+        - name: etc-nss
+          emptyDir: {}
+        - name: home-dirs
+          emptyDir: {}
+        - name: run-dir
+          emptyDir: {}
+      initContainers:
+      - name: cmxsafe-gw-init
+        image: alpine:3.22
+        env:
+        - name: MAC_GW
+          value: "2001:0242:6392:f935"
+        volumeMounts:
+        - name: authorized-keys
+          mountPath: /authorized_keys
+          readOnly: true
+        - name: etc-nss
+          mountPath: /nssroot
+        - name: home-dirs
+          mountPath: /home
+        command: ["/bin/sh","-c"]
+        args:
+          - |
+            set -euxo pipefail
+            apk add --no-cache iproute2 shadow
+
+            # Seeds minimal NSS files into the shared container volume
+            install -Dm644 /etc/passwd /nssroot/etc/passwd
+            install -Dm644 /etc/group  /nssroot/etc/group
+            install -Dm600 /etc/shadow /nssroot/etc/shadow
+
+            # Create users based on Secret
+            for ufile in /authorized_keys/*; do
+              [ -e "$ufile" ] || continue
+              u="$(basename "$ufile")"
+
+              # Create virtual IP addresses
+              mac="$(printf %s "$u" | tr '[:upper:]' '[:lower:]' | sed 's/[:.\-]//g')"
+              case "$mac" in
+                [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f])
+                  left=$(printf %s "$mac" | cut -c1-6)
+                  right=$(printf %s "$mac" | cut -c7-12)
+                  eui64="${left}fffe${right}"
+                  iid="$(echo "$eui64" | sed 's/.\{4\}/&:/g; s/:$//')"
+                  ip -6 addr replace "$(printf '%s%s\n' "${MAC_GW}:" "$iid")/128" dev lo
+                  ;;
+                *)
+                  echo "skipping username: $u" >&2
+                  ;;
+              esac
+
+              # Write user records into the shared NSS files
+              useradd -R /nssroot -M -s /bin/sh "$u" || true
+
+              # /home/user permissions
+              set -- $(awk -F: -v u="$u" '$1==u{print $3, $4}' /nssroot/etc/passwd)
+              uid="$1"; gid="$2"
+
+              # /home/user creation
+              install -d -m 0755 -o "$uid" -g "$gid" "/home/$u"
+
+              # No password login
+              usermod -R /nssroot -p '*' "$u"
+            done
+
+        securityContext:
+          privileged: false
+          runAsUser: 0
+          capabilities:
+            add: ["NET_ADMIN"]
+      containers:
+      - name: cmxsafe-gw
+        image: gateway:dev
+        securityContext:
+          privileged: false
+          capabilities:
+            drop: ["ALL"]
+            add:
+              - NET_BIND_SERVICE
+              - SYS_CHROOT
+              - SETUID
+              - SETGID
+          runAsUser: 0
+          runAsGroup: 0
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+        ports:
+        - containerPort: 22
+        volumeMounts:
+        - mountPath: /etc/ssh/cmxsafe-gw-keys
+          name: ssh-host-keys
+          readOnly: true
+        - mountPath: /etc/ssh/sshd_config
+          subPath: sshd_config
+          name: sshd-config
+          readOnly: true
+        - name: authorized-keys
+          mountPath: /authorized_keys
+          readOnly: true
+        - name: etc-nss
+          mountPath: /etc/passwd
+          subPath: etc/passwd
+          readOnly: true
+        - name: etc-nss
+          mountPath: /etc/group
+          subPath: etc/group
+          readOnly: true
+        - name: etc-nss
+          mountPath: /etc/shadow
+          subPath: etc/shadow
+          readOnly: true
+        - name: home-dirs
+          mountPath: /home
+        - name: run-dir
+          mountPath: /var/run
+        command: ["/bin/sh","-c"]
+        args:
+          - |
+            /usr/sbin/sshd -f /etc/ssh/sshd_config -D

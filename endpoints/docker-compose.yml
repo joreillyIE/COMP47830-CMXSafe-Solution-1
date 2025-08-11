@@ -1,0 +1,68 @@
+version: '3.9'
+
+services:
+  iot_server:
+    build: ./iot_server
+    container_name: iot_server
+    cap_add:
+      - NET_ADMIN
+    networks:
+      iot_network:
+        mac_address: "a2:3f:f8:68:ec:8f"
+    volumes:
+      - ./iot_server/ssh:/home/a23ff868ec8f/.ssh
+      - ./ssh_config/ssh_config:/etc/ssh/ssh_config:ro
+    dns:
+      - 192.168.1.29
+    restart: always
+
+  iot_device_1:
+    build: ./iot_device_1
+    container_name: iot_device_1
+    cap_add:
+      - NET_ADMIN
+    depends_on:
+      - iot_server
+    networks:
+      iot_network:
+        mac_address: "02:5f:9a:3d:b7:12"
+    volumes:
+      - ./iot_device_1/ssh:/home/025f9a3db712/.ssh
+      - ./ssh_config/ssh_config:/etc/ssh/ssh_config:ro
+    dns:
+      - 192.168.1.29
+    restart: always
+
+  iot_device_2:
+    build: ./iot_device_2
+    container_name: iot_device_2
+    cap_add:
+      - NET_ADMIN
+    depends_on:
+      - iot_server
+    networks:
+      iot_network:
+        mac_address: "02:42:ac:11:00:02"
+    volumes:
+      - ./iot_device_2/ssh:/home/0242ac110002/.ssh
+      - ./ssh_config/ssh_config:/etc/ssh/ssh_config:ro
+    dns:
+      - 192.168.1.29
+    restart: always
+
+  bind9:
+    image: ubuntu/bind9:9.18-22.04_beta
+    container_name: bind9
+    environment:
+      - BIND9_USER=root
+    networks:
+      iot_network:
+        ipv4_address: 192.168.1.29
+    volumes:
+      - ./bind9/named.conf:/etc/bind/named.conf:ro
+      - ./bind9/db.myservices.local:/etc/bind/db.myservices.local
+    restart: always
+
+networks:
+  iot_network:
+    external: true

@@ -1,0 +1,32 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+
+# Patch kubeadm’s proxy config to allow session stickiness
+kubeadmConfigPatches:
+- |
+  kind: KubeProxyConfiguration
+  apiVersion: kubeproxy.config.k8s.io/v1alpha1
+
+  mode: iptables
+  configSyncPeriod: 15s
+
+  iptables:
+    syncPeriod: 15s
+
+  ipvs:
+    syncPeriod: 15s
+
+networking:
+  ipFamily: dual
+  podSubnet: "10.244.0.0/16,fd00:10:244::/56"
+  serviceSubnet: "10.96.0.0/12,fd00:10:96::/112"
+  disableDefaultCNI: false
+nodes:
+  - role: control-plane
+    extraMounts:
+      - hostPath: /proc
+        containerPath: /procHost
+  - role: worker
+    extraMounts:
+      - hostPath: /proc
+        containerPath: /procHost

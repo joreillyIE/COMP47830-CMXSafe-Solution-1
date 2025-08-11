@@ -1,0 +1,65 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: service-creator
+  namespace: default
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: service-creator-clusters
+rules:
+- apiGroups: [""]
+  resources: ["services", "pods"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["discovery.k8s.io"]
+  resources: ["endpointslices"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: service-creator-bindings
+subjects:
+- kind: ServiceAccount
+  name: service-creator
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: service-creator-clusters
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: client-go
+  namespace: default
+spec:
+  serviceAccountName: service-creator
+  volumes:
+  - name: tetragon-dir
+    hostPath:
+      path: /var/run/tetragon
+      type: DirectoryOrCreate
+  - name: tetragon-socket
+    hostPath:
+      path: /var/run/tetragon/tetragon.sock
+      type: Socket
+  containers:
+  - name: client
+    image: myclient:dev
+    volumeMounts:
+    - mountPath: /var/run/tetragon
+      name: tetragon-dir
+    - mountPath: /var/run/tetragon/tetragon.sock
+      name: tetragon-socket
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels: { app: cmxsafe-gw }
+        topologyKey: kubernetes.io/hostname

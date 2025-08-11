@@ -1,0 +1,93 @@
+# Confidentiality
+ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
+kexalgorithms curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group18-sha512,diffie-hellman-group16-sha512
+versionaddendum none
+printmotd no
+rekeylimit 1G 3600 # Lowered to prevent attacks that compromise session key
+compression no
+
+# Integrity
+macs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com
+fingerprinthash SHA256
+permituserenvironment no
+
+# Availability
+port 22
+addressfamily any
+listenaddress [::]:22
+listenaddress 0.0.0.0:22
+maxsessions 3 # Lowered to minimize risk of denial of service
+tcpkeepalive no
+clientaliveinterval 900 # Lowered to minimize risk of denial of service
+clientalivecountmax 0 # Lowered to minimize risk of denial of service
+maxstartups 10:30:60 # Lowered to minimize risk of denial of service
+ipqos lowdelay throughput
+subsystem sftp /bin/false
+
+# Non Repudiation
+printlastlog yes
+loglevel INFO
+syslogfacility AUTH
+
+# Authentication
+hostkey /etc/ssh/cmxsafe-gw-keys/ssh_host_ed25519_key
+authenticationmethods publickey
+hostkeyalgorithms ssh-ed25519,rsa-sha2-512,rsa-sha2-256
+PubkeyAcceptedAlgorithms ssh-ed25519,rsa-sha2-512,rsa-sha2-256
+authorizedkeyscommand /bin/cat /authorized_keys/%u
+authorizedkeyscommanduser root
+revokedkeys none
+trustedusercakeys none
+pubkeyauthoptions none
+ignorerhosts yes
+ignoreuserknownhosts yes
+hostbasedauthentication no
+pubkeyauthentication yes
+passwordauthentication no
+kbdinteractiveauthentication no
+challengeresponseauthentication no
+permitemptypasswords no
+logingracetime 60 # Lowered to minimize risk of brute force attacks
+maxauthtries 4 # Lowered to minimize risk of brute force attacks
+securitykeyprovider internal
+permituserrc no
+exposeauthinfo no
+usedns no
+
+# Authorization
+strictmodes yes
+x11forwarding no
+allowtcpforwarding no
+allowagentforwarding no
+disableforwarding no
+allowstreamlocalforwarding no
+streamlocalbindunlink no
+permittty no
+permitrootlogin no # Prevents server compromise
+allowusers a23ff868ec8f 025f9a3db712 0242ac110002
+denyusers root
+forcecommand echo "Access granted but no command allowed"
+authorizedprincipalsfile none
+authorizedprincipalscommand none
+authorizedprincipalscommanduser none
+hostkeyagent none
+authorizedkeysfile none
+permitopen none
+permitlisten none
+gatewayports no
+permittunnel no
+chrootdirectory none
+
+Match User a23ff868ec8f
+    AllowTcpForwarding remote
+    GatewayPorts clientspecified
+    PermitListen [2001:0242:6392:f935:a23f:f8ff:fe68:ec8f]:1883
+    ForceCommand /etc/createservice.sh; sleep infinity
+
+Match User 025f9a3db712
+    AllowTcpForwarding local
+    PermitOpen [2001:0242:6392:f935:a23f:f8ff:fe68:ec8f]:1883
+
+Match User 0242ac110002
+    AllowTcpForwarding yes
+    PermitOpen a23ff868ec8f.default.svc.cluster.local:22 [2001:0242:6392:f935:a23f:f8ff:fe68:ec8f]:1883

@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: iot-users
+type: Opaque
+stringData:
+  a23ff868ec8f: |
+    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOJf3VssNyL5RvG+glBJvGHuYKIIdOxR4ZHagKf7ZrnM
+  025f9a3db712: |
+    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIENJRqZm+5lQY9AUp2qS50e/Pap9ZexVJKx7CHwaXOu
+  0242ac110002: |
+    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOF1Tboi1NhnzdONj6PlLKVwP2g0D+sIYFuLOYmM88CH
