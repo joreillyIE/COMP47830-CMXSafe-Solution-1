@@ -29,6 +29,8 @@ function Setup-Cluster {
     docker network connect iot_network cmxsafe-worker
 
     Write-Output "Setting up Tetragon..."
+    helm repo add cilium https://helm.cilium.io
+    helm repo update
     docker exec -it cmxsafe-control-plane sh -c 'mkdir -p /var/run/tetragon'
     docker exec -it cmxsafe-worker sh -c 'mkdir -p /var/run/tetragon'
     helm install tetragon --set tetragon.hostProcPath=/procHost cilium/tetragon -n kube-system --set exportDirectory="/var/run/tetragon" --set tetragon.grpc.enabled=true --set tetragon.grpc.address="unix:///var/run/tetragon/tetragon.sock" --set tetragon.enableProcessCred=true --set tetragon.enableProcessNs=true --set tetragonOperator.PodInfo.enabled=true
